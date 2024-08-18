@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Fake OS</title>
+    <style id="theme-style">
+        /* Default (normaltheme) */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background: #e0e0e0;
+            overflow: hidden;
+        }
+
+        #taskbar {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background: #333;
+            color: white;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+        }
+
+        #start-btn {
+            background: #444;
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        #taskbar button {
+            background: #444;
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            margin-right: 5px;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+
+        #start-menu {
+            position: absolute;
+            bottom: 40px;
+            left: 0;
+            background: #2c2c2c;
+            color: white;
+            width: 200px;
+            border: 1px solid #444;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            display: none;
+            z-index: 2;
+        }
+
+        #start-menu img {
+            width: 100%;
+            border-bottom: 1px solid #444;
+        }
+
+        #start-menu button {
+            background: #333;
+            border: none;
+            color: white;
+            padding: 10px;
+            cursor: pointer;
+            width: 100%;
+            text-align: left;
+            border-bottom: 1px solid #444;
+        }
+
+        #start-menu button:last-child {
+            border-bottom: none;
+        }
+
+        #windows-container {
+            position: relative;
+        }
+
+        .window {
+            position: absolute;
+            width: 300px;
+            height: 200px;
+            background: white;
+            border: 1px solid #ccc;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+            z-index: 1;
+        }
+
+        .window-header {
+            background: #333;
+            color: white;
+            padding: 5px;
+            cursor: move;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .window-controls {
+            display: flex;
+        }
+
+        .window-controls button {
+            background: #555;
+            border: none;
+            color: white;
+            padding: 5px;
+            cursor: pointer;
+            border-radius: 3px;
+            margin-left: 2px;
+        }
+
+        .window-content {
+            flex: 1;
+            overflow: auto;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+        }
+
+        .calc-btn {
+            background: #555;
+            border: 1px solid #444;
+            color: white;
+            padding: 10px;
+            cursor: pointer;
+            margin: 2px;
+            width: 22%;
+            text-align: center;
+        }
+
+        #camera {
+            display: none;
+        }
+
+        #calculator {
+            display: none;
+        }
+
+        #explorer {
+            display: none;
+        }
+
+        #notepad {
+            display: none;
+        }
+
+        /* Boot Screen */
+        #boot-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 3;
+        }
+
+        #boot-screen .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-left: 4px solid white;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Gradient Theme */
+        .gradient-theme {
+            --bg-color: #f0f0f0;
+            --taskbar-bg: #4a4a4a;
+            --start-menu-bg: #3c3c3c;
+            --window-header-bg: #2a2a2a;
+            --button-bg: #555;
+        }
+
+        .gradient-theme body {
+            background: var(--bg-color);
+        }
+
+        .gradient-theme #taskbar {
+            background: var(--taskbar-bg);
+        }
+
+        .gradient-theme #start-menu {
+            background: var(--start-menu-bg);
+        }
+
+        .gradient-theme .window-header {
+            background: var(--window-header-bg);
+        }
+
+        .gradient-theme .window-controls button {
+            background: var(--button-bg);
+        }
+    </style>
+</head>
+<body>
+    <div id="boot-screen">
+        <img src="logo.png" alt="Logo">
+        <div class="spinner"></div>
+    </div>
+    <div id="taskbar">
+        <button id="start-btn">Start</button>
+        <button id="camera-btn">Camera</button>
+        <button id="calculator-btn">Calculator</button>
+        <button id="browser-btn">Browser</button>
+        <button id="explorer-btn">Explorer</button>
+        <button id="notepad-btn">Notepad</button>
+        <button id="settings-btn">Settings</button>
+    </div>
+    <div id="start-menu">
+        <img src="logo.png" alt="Logo">
+        <button id="start-camera">Open Camera</button>
+        <button id="start-calculator">Open Calculator</button>
+        <button id="start-browser">Open Browser</button>
+        <button id="start-explorer">Open Explorer</button>
+        <button id="start-notepad">Open Notepad</button>
+    </div>
+    <div id="windows-container"></div>
+    <audio id="startup-sound" src="win12.wav" preload="auto"></audio>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const startupSound = document.getElementById("startup-sound");
+            const bootScreen = document.getElementById("boot-screen");
+            const themeStyle = document.getElementById("theme-style");
+
+            startupSound.play();
+            setTimeout(() => bootScreen.style.display = 'none', 3000); // Hide boot screen after 3 seconds
+
+            const taskbar = document.getElementById("taskbar");
+            const startMenu = document.getElementById("start-menu");
+            const windowsContainer = document.getElementById("windows-container");
+            const settingsButton = document.getElementById("settings-btn");
+
+            document.getElementById("start-btn").addEventListener("click", () => {
+                startMenu.style.display = startMenu.style.display === "block" ? "none" : "block";
+            });
+
+            document.getElementById("start-camera").addEventListener("click", () => {
+                startMenu.style.display = "none";
+                createWindow("Camera", `<video id="camera" autoplay></video>`);
+                const camera = document.getElementById("camera");
+                navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
+                    camera.srcObject = stream;
+                });
+            });
+
+            document.getElementById("start-calculator").addEventListener("click", () => {
+                startMenu.style.display = "none";
+                createWindow("Calculator", `
+                    <input id="calc-display" type="text" disabled>
+                    <div>
+                        <button class="calc-btn" onclick="appendCalcValue('7')">7</button>
+                        <button class="calc-btn" onclick="appendCalcValue('8')">8</button>
+                        <button class="calc-btn" onclick="appendCalcValue('9')">9</button>
+                        <button class="calc-btn" onclick="appendCalcValue('/')">/</button>
+                    </div>
+                    <div>
+                        <button class="calc-btn" onclick="appendCalcValue('4')">4</button>
+                        <button class="calc-btn" onclick="appendCalcValue('5')">5</button>
+                        <button class="calc-btn" onclick="appendCalcValue('6')">6</button>
+                        <button class="calc-btn" onclick="appendCalcValue('*')">*</button>
+                    </div>
+                    <div>
+                        <button class="calc-btn" onclick="appendCalcValue('1')">1</button>
+                        <button class="calc-btn" onclick="appendCalcValue('2')">2</button>
+                        <button class="calc-btn" onclick="appendCalcValue('3')">3</button>
+                        <button class="calc-btn" onclick="appendCalcValue('-')">-</button>
+                    </div>
+                    <div>
+                        <button class="calc-btn" onclick="appendCalcValue('0')">0</button>
+                        <button class="calc-btn" onclick="appendCalcValue('.')">.</button>
+                        <button class="calc-btn" onclick="calculateResult()">=</button>
+                        <button class="calc-btn" onclick="appendCalcValue('+')">+</button>
+                    </div>
+                `);
+            });
+
+            document.getElementById("start-browser").addEventListener("click", () => {
+                startMenu.style.display = "none";
+                createWindow("Browser", `<iframe src="https://www.bing.com" frameborder="0"></iframe>`);
+            });
+
+            // ... (Other code continues here)
+        });
+
+        function createWindow(title, content) {
+            const windowsContainer = document.getElementById("windows-container");
+            const windowDiv = document.createElement("div");
+            windowDiv.className = "window";
+            windowDiv.innerHTML = `
+                <div class="window-header">
+                    <span>${title}</span>
+                    <div class="window-controls">
+                        <button onclick="minimizeWindow(this)">_</button>
+                        <button onclick="maximizeWindow(this)">□</button>
+                        <button onclick="closeWindow(this)">×</button>
+                    </div>
+                </div>
+                <div class="window-content">${content}</div>
+            `;
+            windowsContainer.appendChild(windowDiv);
+            makeDraggable(windowDiv);
+        }
+
+        function makeDraggable(element) {
+            let isDragging = false;
+            let offsetX, offsetY;
+
+            element.querySelector('.window-header').addEventListener('mousedown', (e) => {
+                isDragging = true;
+                offsetX = e.clientX - element.getBoundingClientRect().left;
+                offsetY = e.clientY - element.getBoundingClientRect().top;
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', () => {
+                    isDragging = false;
+                    document.removeEventListener('mousemove', onMouseMove);
+                });
+            });
+
+            function onMouseMove(e) {
+                if (isDragging) {
+                    element.style.left = `${e.clientX - offsetX}px`;
+                    element.style.top = `${e.clientY - offsetY}px`;
+                }
+            }
+        }
+
+        function minimizeWindow(button) {
+            const windowDiv = button.closest(".window");
+            windowDiv.style.display = "none";
+        }
+
+        function maximizeWindow(button) {
+            const windowDiv = button.closest(".window");
+            windowDiv.style.width = "100%";
+            windowDiv.style.height = "100%";
+            windowDiv.style.left = "0";
+            windowDiv.style.top = "0";
+        }
+
+        function closeWindow(button) {
+            const windowDiv = button.closest(".window");
+            windowDiv.remove();
+        }
+
+        document.getElementById("settings-btn").addEventListener("click", () => {
+            createWindow("Settings", `
+                <button onclick="changeTheme('normaltheme')">Normal Theme</button>
+                <button onclick="changeTheme('gradienttheme')">Gradient Theme</button>
+            `);
+        });
+
+        function changeTheme(theme) {
+            const themeStyle = document.getElementById("theme-style");
+            themeStyle.innerHTML = theme === 'gradienttheme' ? `
+                body {
+                    background: #f0f0f0;
+                }
+
+                #taskbar {
+                    background: #4a4a4a;
+                }
+
+                #start-menu {
+                    background: #3c3c3c;
+                }
+
+                .window-header {
+                    background: #2a2a2a;
+                }
+
+                .window-controls button {
+                    background: #555;
+                }
+            ` : `
+                body {
+                    background: #e0e0e0;
+                }
+
+                #taskbar {
+                    background: #333;
+                }
+
+                #start-menu {
+                    background: #2c2c2c;
+                }
+
+                .window-header {
+                    background: #333;
+                }
+
+                .window-controls button {
+                    background: #555;
+                }
+            `;
+        }
+    </script>
+</body>
+</html>
