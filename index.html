@@ -231,6 +231,7 @@
     <div id="start-menu">
         <img src="logo.png" alt="Logo">
         <button id="start-camera">Open Camera</button>
+        <button id="start-virtualbox>Open Virtual box</button>
         <button id="start-calculator">Open Calculator</button>
         <button id="start-browser">Open Browser</button>
         <button id="start-explorer">Open Explorer</button>
@@ -300,6 +301,11 @@
             document.getElementById("start-browser").addEventListener("click", () => {
                 startMenu.style.display = "none";
                 createWindow("Browser", `<iframe src="https://www.bing.com" frameborder="0"></iframe>`);
+            });
+            
+            document.getElementById("start-virtualbox").addEventListener("click", () => {
+                startMenu.style.display = "none";
+                createWindow("virtualbox", `<iframe src="https://sakalt.github.io/Windows12-new" frameborder="0"></iframe>`);
             });
 
             // ... (Other code continues here)
